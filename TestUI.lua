@@ -1,4 +1,3 @@
--- Easy-to-Use UI Library with Multiple Tabs and Themes
 local UILib = {}
 
 local function createElement(class, props, parent)
@@ -11,10 +10,9 @@ local function createElement(class, props, parent)
 end
 
 function UILib:Init(config)
-    -- Default theme is Dark if not provided
     local theme = config.Theme or "Dark"  -- Default to Dark theme if not provided
 
-    -- Creating the base GUI container
+    -- Create main GUI container
     local gui = createElement("ScreenGui", {
         Name = config.Name or "EasyUI",
         ResetOnSpawn = false,
@@ -44,7 +42,7 @@ function UILib:Init(config)
     -- UI structure
     local ui = {}
 
-    -- Creating the Tabs Container
+    -- Creating Tabs container
     local tabContainer = createElement("Frame", {
         Size = UDim2.new(1, 0, 0, 40),
         BackgroundColor3 = Color3.fromRGB(55, 55, 55),
@@ -79,7 +77,7 @@ function UILib:Init(config)
         end)
     end
 
-    -- Add the Setting Tab
+    -- Add Settings Tab
     createTab("Settings", function()
         local settingsTab = createElement("Frame", {
             Size = UDim2.new(1, 0, 1, 0),
@@ -207,6 +205,9 @@ function UILib:Init(config)
             BackgroundTransparency = 1
         }, main)
     end
+
+    -- Show the first tab
+    createTab("Settings", function() end)
 
     return ui
 end
