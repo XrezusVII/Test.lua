@@ -1,9 +1,30 @@
--- Easy-to-Use Modern UI Library with Tabs and Toggle Visibility
+-- Modern UI Library with Theme System
 local UILib = {}
+
+local Themes = {
+    Default = {
+        Background = Color3.fromRGB(25, 25, 25),
+        Button = Color3.fromRGB(40, 40, 40),
+        Toggle = Color3.fromRGB(50, 50, 50),
+        TextColor = Color3.new(1,1,1)
+    },
+    Light = {
+        Background = Color3.fromRGB(245, 245, 245),
+        Button = Color3.fromRGB(220, 220, 220),
+        Toggle = Color3.fromRGB(200, 200, 200),
+        TextColor = Color3.new(0,0,0)
+    },
+    DarkBlue = {
+        Background = Color3.fromRGB(15, 15, 35),
+        Button = Color3.fromRGB(30, 30, 60),
+        Toggle = Color3.fromRGB(40, 40, 70),
+        TextColor = Color3.new(0.8, 0.8, 1)
+    }
+}
 
 local function createElement(class, props, parent)
     local inst = Instance.new(class)
-    for k, v in pairs(props or {}) do
+    for k,v in pairs(props or {}) do
         inst[k] = v
     end
     if parent then inst.Parent = parent end
@@ -11,119 +32,116 @@ local function createElement(class, props, parent)
 end
 
 function UILib:Init(config)
-    local player = game:GetService("Players").LocalPlayer
+    local themeName = config.Theme or "Default"
+    local Theme = Themes[themeName] or Themes.Default
+
     local gui = createElement("ScreenGui", {
         Name = config.Name or "ModernUI",
         ResetOnSpawn = false,
-        Parent = player:WaitForChild("PlayerGui")
+        Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
     })
 
-    -- Toggle Button
-    local toggleBtn = createElement("TextButton", {
-        Size = UDim2.new(0, 100, 0, 30),
-        Position = UDim2.new(0, 10, 0, 10),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        Text = "Toggle UI",
-        TextColor3 = Color3.new(1, 1, 1),
-        Font = Enum.Font.Gotham,
-        TextSize = 14,
-        ZIndex = 10
-    }, gui)
-    createElement("UICorner", {}, toggleBtn)
-
-    -- Main UI Frame
     local main = createElement("Frame", {
         Name = "MainFrame",
-        Size = UDim2.new(0, 450, 0, 500),
-        Position = UDim2.new(0.5, -225, 0.5, -250),
-        BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+        Size = UDim2.new(0, 400, 0, 500),
+        Position = UDim2.new(0.5, -200, 0.5, -250),
+        BackgroundColor3 = Theme.Background,
         BorderSizePixel = 0,
         Active = true,
         Draggable = true
     }, gui)
-    createElement("UICorner", { CornerRadius = UDim.new(0, 10) }, main)
 
-    -- Tab Buttons Holder
+    createElement("UICorner", { CornerRadius = UDim.new(0, 8) }, main)
+    createElement("UIPadding", { PaddingTop = UDim.new(0, 10), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) }, main)
+
     local tabButtons = createElement("Frame", {
-        Size = UDim2.new(0, 120, 1, 0),
-        BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        Size = UDim2.new(1, 0, 0, 30),
+        BackgroundTransparency = 1
     }, main)
-    createElement("UICorner", {}, tabButtons)
-    createElement("UIListLayout", { Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder }, tabButtons)
+    local buttonLayout = createElement("UIListLayout", {
+        FillDirection = Enum.FillDirection.Horizontal,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 6)
+    }, tabButtons)
 
-    -- Pages Holder
-    local pages = createElement("Frame", {
-        Position = UDim2.new(0, 125, 0, 0),
-        Size = UDim2.new(1, -125, 1, 0),
+    local contentFrame = createElement("Frame", {
+        Size = UDim2.new(1, 0, 1, -40),
+        Position = UDim2.new(0, 0, 0, 35),
         BackgroundTransparency = 1
     }, main)
 
-    local ui = { Tabs = {} }
+    local ui = {}
+    local tabs = {}
 
-    function ui:CreateTab(name)
-        local page = createElement("ScrollingFrame", {
+    function ui:CreateTab(tabName)
+        local tab = createElement("Frame", {
+            Name = tabName,
             Size = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
-            CanvasSize = UDim2.new(0, 0, 0, 0),
-            ScrollBarThickness = 4,
             Visible = false
-        }, pages)
-        local layout = createElement("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }, page)
+        }, contentFrame)
 
-        local tabButton = createElement("TextButton", {
-            Size = UDim2.new(1, -10, 0, 30),
-            Text = name,
-            Font = Enum.Font.Gotham,
-            TextSize = 14,
-            BackgroundColor3 = Color3.fromRGB(55, 55, 55),
-            TextColor3 = Color3.new(1, 1, 1)
+        local layout = createElement("UIListLayout", {
+            Padding = UDim.new(0, 6),
+            SortOrder = Enum.SortOrder.LayoutOrder
+        }, tab)
+
+        local tabBtn = createElement("TextButton", {
+            Text = tabName,
+            Size = UDim2.new(0, 100, 1, 0),
+            BackgroundColor3 = Theme.Button,
+            TextColor3 = Theme.TextColor,
+            Font = Enum.Font.GothamBold,
+            TextSize = 14
         }, tabButtons)
-        createElement("UICorner", {}, tabButton)
+        createElement("UICorner", {}, tabBtn)
 
-        tabButton.MouseButton1Click:Connect(function()
-            for _, t in pairs(ui.Tabs) do t.page.Visible = false end
-            page.Visible = true
+        tabBtn.MouseButton1Click:Connect(function()
+            for _, t in pairs(contentFrame:GetChildren()) do
+                if t:IsA("Frame") then t.Visible = false end
+            end
+            tab.Visible = true
         end)
 
-        local tab = {}
-        function tab:AddLabel(text)
+        local api = {}
+
+        function api:AddLabel(text)
             createElement("TextLabel", {
-                Size = UDim2.new(1, -10, 0, 24),
+                Size = UDim2.new(1, 0, 0, 20),
                 BackgroundTransparency = 1,
                 Text = text,
                 Font = Enum.Font.GothamBold,
-                TextColor3 = Color3.fromRGB(220, 220, 220),
-                TextSize = 16,
+                TextColor3 = Theme.TextColor,
+                TextSize = 14,
                 TextXAlignment = Enum.TextXAlignment.Left
-            }, page)
+            }, tab)
         end
 
-        function tab:AddButton(text, callback)
+        function api:AddButton(text, callback)
             local btn = createElement("TextButton", {
-                Size = UDim2.new(1, -10, 0, 30),
-                BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+                Size = UDim2.new(1, 0, 0, 30),
+                BackgroundColor3 = Theme.Button,
                 Text = text,
                 Font = Enum.Font.Gotham,
-                TextColor3 = Color3.new(1, 1, 1),
-                TextSize = 14,
-                BorderSizePixel = 0
-            }, page)
+                TextColor3 = Theme.TextColor,
+                TextSize = 14
+            }, tab)
             createElement("UICorner", {}, btn)
             btn.MouseButton1Click:Connect(function()
                 pcall(callback)
             end)
         end
 
-        function tab:AddToggle(text, default, callback)
+        function api:AddToggle(text, default, callback)
             local state = default or false
             local toggle = createElement("TextButton", {
-                Size = UDim2.new(1, -10, 0, 30),
-                BackgroundColor3 = Color3.fromRGB(65, 65, 65),
+                Size = UDim2.new(1, 0, 0, 30),
+                BackgroundColor3 = Theme.Toggle,
                 Text = text .. ": " .. (state and "ON" or "OFF"),
                 Font = Enum.Font.Gotham,
-                TextColor3 = Color3.new(1, 1, 1),
+                TextColor3 = Theme.TextColor,
                 TextSize = 14
-            }, page)
+            }, tab)
             createElement("UICorner", {}, toggle)
             toggle.MouseButton1Click:Connect(function()
                 state = not state
@@ -132,20 +150,35 @@ function UILib:Init(config)
             end)
         end
 
-        function tab:AddSpacer(size)
+        function api:AddSpacer(size)
             createElement("Frame", {
                 Size = UDim2.new(1, 0, 0, size or 10),
                 BackgroundTransparency = 1
-            }, page)
+            }, tab)
         end
 
-        ui.Tabs[name] = { page = page }
-        if #pages:GetChildren() == 2 then page.Visible = true end
-        return tab
+        table.insert(tabs, tab)
+        return api
     end
 
+    -- Toggle Button
+    local toggleBtn = createElement("TextButton", {
+        Size = UDim2.new(0, 30, 0, 30),
+        Position = UDim2.new(1, -35, 0, 5),
+        BackgroundColor3 = Theme.Button,
+        Text = "-",
+        TextColor3 = Theme.TextColor,
+        Font = Enum.Font.GothamBold,
+        TextSize = 16,
+        Parent = main
+    })
+    createElement("UICorner", {}, toggleBtn)
+    local visible = true
     toggleBtn.MouseButton1Click:Connect(function()
-        main.Visible = not main.Visible
+        visible = not visible
+        contentFrame.Visible = visible
+        tabButtons.Visible = visible
+        toggleBtn.Text = visible and "-" or "+"
     end)
 
     return ui
