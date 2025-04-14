@@ -1,4 +1,4 @@
--- Easy-to-Use UI Library with Theme Settings and Multiple Tabs
+-- Easy-to-Use UI Library with Multiple Tabs and Themes
 local UILib = {}
 
 local function createElement(class, props, parent)
@@ -11,39 +11,43 @@ local function createElement(class, props, parent)
 end
 
 function UILib:Init(config)
-    -- Ensure config has Name and default theme
+    -- Default theme is Dark if not provided
     local theme = config.Theme or "Dark"  -- Default to Dark theme if not provided
 
+    -- Creating the base GUI container
     local gui = createElement("ScreenGui", {
         Name = config.Name or "EasyUI",
         ResetOnSpawn = false,
         Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
     })
 
+    -- Main frame of the UI
     local main = createElement("Frame", {
         Name = "MainFrame",
-        Size = UDim2.new(0, 400, 0, 500),
-        Position = UDim2.new(0.5, -200, 0.5, -250),
-        BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+        Size = UDim2.new(0, 500, 0, 600),
+        Position = UDim2.new(0.5, -250, 0.5, -300),
+        BackgroundColor3 = Color3.fromRGB(35, 35, 35),
         BorderSizePixel = 0,
         Active = true,
         Draggable = true
     }, gui)
 
-    createElement("UICorner", { CornerRadius = UDim.new(0, 8) }, main)
-    createElement("UIPadding", { PaddingTop = UDim.new(0, 10), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) }, main)
+    -- Add rounded corners and padding for the main frame
+    createElement("UICorner", { CornerRadius = UDim.new(0, 12) }, main)
+    createElement("UIPadding", { PaddingTop = UDim.new(0, 10), PaddingLeft = UDim.new(0, 15), PaddingRight = UDim.new(0, 15) }, main)
 
     local layout = createElement("UIListLayout", {
-        Padding = UDim.new(0, 8),
+        Padding = UDim.new(0, 10),
         SortOrder = Enum.SortOrder.LayoutOrder
     }, main)
 
+    -- UI structure
     local ui = {}
 
-    -- Add Tabs Container
+    -- Creating the Tabs Container
     local tabContainer = createElement("Frame", {
         Size = UDim2.new(1, 0, 0, 40),
-        BackgroundColor3 = Color3.fromRGB(45, 45, 45),
+        BackgroundColor3 = Color3.fromRGB(55, 55, 55),
         Parent = main
     })
     createElement("UICorner", { CornerRadius = UDim.new(0, 5) }, tabContainer)
@@ -51,12 +55,12 @@ function UILib:Init(config)
     -- Function to create new Tabs
     local function createTab(tabName, content)
         local button = createElement("TextButton", {
-            Size = UDim2.new(0, 100, 0, 40),
-            BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+            Size = UDim2.new(0, 120, 0, 40),
+            BackgroundColor3 = Color3.fromRGB(75, 75, 75),
             Text = tabName,
             TextColor3 = Color3.fromRGB(255, 255, 255),
             Font = Enum.Font.Gotham,
-            TextSize = 14,
+            TextSize = 16,
             BorderSizePixel = 0,
             Parent = tabContainer
         })
@@ -101,6 +105,43 @@ function UILib:Init(config)
             gui.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
             main.BackgroundColor3 = Color3.fromRGB(0, 0, 180)
             ui:SetTextColor(Color3.fromRGB(255, 255, 255))
+        end)
+
+        -- Add user input for custom colors
+        ui:AddLabel("Customize Colors:")
+        ui:AddButton("Set Custom Colors", function()
+            -- Allow user to input custom RGB values
+            local colorPicker = createElement("Frame", {
+                Size = UDim2.new(0, 200, 0, 200),
+                Position = UDim2.new(0.5, -100, 0.5, -100),
+                BackgroundColor3 = Color3.fromRGB(100, 100, 100),
+                Parent = gui
+            })
+
+            createElement("UICorner", { CornerRadius = UDim.new(0, 10) }, colorPicker)
+
+            local colorInput = createElement("TextBox", {
+                Size = UDim2.new(0, 180, 0, 50),
+                Position = UDim2.new(0.5, -90, 0.5, -40),
+                BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                Text = "Enter RGB (0,0,0)",
+                Font = Enum.Font.Gotham,
+                TextSize = 14,
+                BorderSizePixel = 0,
+                Parent = colorPicker
+            })
+            createElement("UICorner", { CornerRadius = UDim.new(0, 5) }, colorInput)
+
+            ui:AddButton("Apply Custom Theme", function()
+                local rgb = string.split(colorInput.Text, ",")
+                if #rgb == 3 then
+                    local r, g, b = tonumber(rgb[1]), tonumber(rgb[2]), tonumber(rgb[3])
+                    if r and g and b then
+                        gui.BackgroundColor3 = Color3.fromRGB(r, g, b)
+                        main.BackgroundColor3 = Color3.fromRGB(r - 30, g - 30, b - 30)
+                    end
+                end
+            end)
         end)
     end)
 
